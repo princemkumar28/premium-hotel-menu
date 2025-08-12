@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>News App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .news-container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      max-width: 600px;
+      width: 100%;
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #f57c00;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    a {
+      text-decoration: none;
+      color: #0077cc;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="news-container">
+    <h2>Local News</h2>
+    <input type="text" id="locationInput" placeholder="Enter country code (e.g., in, us, gb)" />
+    <br />
+    <button onclick="getNews()">Get News</button>
+    <div id="newsResult">
+      <ul id="newsList"></ul>
+    </div>
+  </div>
+
+  <script>
+    async function getNews() {
+      const countryCode = document.getElementById("locationInput").value.trim().toLowerCase();
+      const apiKey = "393c0f1e543a4845bb262e1112e43935";
+      const url = `https://newsapi.org/v2/top-headlines?country=${countryCode}&apiKey=${apiKey}`;
+
+      const newsList = document.getElementById("newsList");
+      newsList.innerHTML = "Loading...";
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.status !== "ok" || data.articles.length === 0) {
+          newsList.innerHTML = "<li>No news found for that location.</li>";
+          return;
+        }
+
+        newsList.innerHTML = "";
+        data.articles.slice(0, 5).forEach(article => {
+          const li = document.createElement("li");
+          li.innerHTML = `<strong>${article.title}</strong><br/><a href="${article.url}" target="_blank">Read more</a>`;
+          newsList.appendChild(li);
+        });
+      } catch (error) {
+        newsList.innerHTML = "<li>Error fetching news.</li>";
+      }
+    }
+  </script>
+
+</body>
+</html>

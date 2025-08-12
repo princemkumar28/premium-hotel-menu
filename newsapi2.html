@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart News App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .news-box {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+
+    input, select {
+      padding: 10px;
+      width: calc(100% - 140px);
+      max-width: 400px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .location-info {
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    li img {
+      width: 100px;
+      height: auto;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .news-details {
+      flex: 1;
+    }
+
+    .news-details a {
+      color: #0077cc;
+      text-decoration: none;
+    }
+
+    .news-details a:hover {
+      text-decoration: underline;
+    }
+
+    .source {
+      font-size: 0.85em;
+      color: #777;
+    }
+
+    .flag {
+      width: 25px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="news-box">
+    <h2>🌍 Local & International News</h2>
+
+    <input type="text" id="locationInput" placeholder="Enter country or city name" />
+    <select id="category">
+      <option value="">All Categories</option>
+      <option value="business">Business</option>
+      <option value="entertainment">Entertainment</option>
+      <option value="health">Health</option>
+      <option value="science">Science</option>
+      <option value="sports">Sports</option>
+      <option value="technology">Technology</option>
+    </select>
+    <button onclick="fetchNews()">Get News</button>
+    <button onclick="autoDetect()">📍 Use My Location</button>
+
+    <div class="location-info" id="locationInfo"></div>
+    <ul id="newsList"></ul>
+  </div>
+
+  <script>
+    const apiKey = "393c0f1e543a4845bb262e1112e43935";
+
+    async function fetchCountryCode(locationName) {
+      const res = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(locationName)}?fullText=false`);
+      const data = await res.json();
+      if (data && data[0]) {
+        return {
+          code: data[0].cca2.toLowerCase(),
+          fullName: data[0].name.common,
+          flag: data[0].flags.svg
+        };
+      } else {
+        throw new Error("Invalid country or city name.");
+      }
+    }
+
+    async function fetchNews(locationOverride = null) {
+      const locationInput = document.getElementById("locationInput").value.trim();
+      const category = document.getElementById("category").value;
+      const location = locationOverride || locationInput;
+      const newsList = document.getElementById("newsList");
+      const locationInfo = document.getElementById("locationInfo");
+      newsList.innerHTML = "<li>Loading...</li>";
+
+      try {
+        const { code, fullName, flag } = await fetchCountryCode(location);
+        let url = `https://newsapi.org/v2/top-headlines?country=${code}&apiKey=${apiKey}`;
+        if (category) url += `&category=${category}`;
+
+        let res = await fetch(url);
+        let data = await res.json();
+
+        // If no headlines today, try yesterday's with everything API
+        if (data.articles.length === 0) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const fromDate = yesterday.toISOString().split('T')[0];
+          const query = encodeURIComponent(location);
+          url = `https://newsapi.org/v2/everything?q=${query}&from=${fromDate}&sortBy=publishedAt&apiKey=${apiKey}`;
+          res = await fetch(url);
+          data = await res.json();
+        }
+
+        if (!data.articles || data.articles.length === 0) {
+          newsList.innerHTML = "<li>No news found for this location.</li>";
+          locationInfo.innerHTML = "";
+          return;
+        }
+
+        locationInfo.innerHTML = `<img src="${flag}" class="flag" /> Showing news for <strong>${fullName}</strong>`;
+        newsList.innerHTML = "";
+
+        data.articles.slice(0, 7).forEach(article => {
+          const li = document.createElement("li");
+          const img = article.urlToImage ? `<img src="${article.urlToImage}" alt="news"/>` : '';
+          li.innerHTML = `
+            ${img}
+            <div class="news-details">
+              <a href="${article.url}" target="_blank"><strong>${article.title}</strong></a>
+              <div class="source">📰 ${article.source.name} | 🕒 ${new Date(article.publishedAt).toLocaleString()}</div>
+            </div>
+          `;
+          newsList.appendChild(li);
+        });
+
+      } catch (error) {
+        newsList.innerHTML = `<li>Error: ${error.message}</li>`;
+        document.getElementById("locationInfo").textContent = "";
+      }
+    }
+
+    async function autoDetect() {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        const countryName = data.country_name || "India";
+        document.getElementById("locationInput").value = countryName;
+        fetchNews(countryName);
+      } catch {
+        alert("Unable to detect location. Please enter it manually.");
+      }
+    }
+  </script>
+
+</body>
+</html>
+

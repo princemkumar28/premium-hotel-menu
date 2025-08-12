@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #ff9800;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .menu-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .menu-item h3 {
+            margin: 0 0 10px;
+        }
+        .menu-item p {
+            margin: 0 0 5px;
+        }
+        button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #e68a00;
+        }
+        .order-summary {
+            padding: 20px;
+            background: white;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to PYTHON Paradise</h1>
+    </header>
+
+    <div class="menu" id="menu"></div>
+
+    <div class="order-summary">
+        <h2>Order Summary</h2>
+        <p id="order-list">No items ordered yet.</p>
+        <p><strong>Total:</strong> Rs <span id="total">0</span></p>
+    </div>
+
+    <script>
+        const menu = {
+            'Chicken Biryani': 210,
+            'Mutton Biryani': 253,
+            'Chicken Family Pack': 552,
+            'Mutton Family Pack': 576,
+            'Special Chicken Biryani': 337,
+            'Special Mutton Biryani': 351,
+            'Supreme Chicken Biryani': 784,
+            'Supreme Mutton Biryani': 819,
+            'Egg Biryani': 154,
+            'Veg Biryani': 154,
+            'Veg Family Pack': 383,
+            'Veg Supreme Pack': 574
+        };
+
+        let orderTotal = 0;
+        let orderItems = [];
+
+        const menuContainer = document.getElementById('menu');
+        const orderList = document.getElementById('order-list');
+        const totalDisplay = document.getElementById('total');
+
+        for (let item in menu) {
+            const div = document.createElement('div');
+            div.className = 'menu-item';
+            div.innerHTML = `<h3>${item}</h3><p>Price: Rs ${menu[item]}</p><button onclick="addToOrder('${item}')">Add to Order</button>`;
+            menuContainer.appendChild(div);
+        }
+
+        function addToOrder(item) {
+            orderItems.push(item);
+            orderTotal += menu[item];
+            updateOrderSummary();
+        }
+
+        function updateOrderSummary() {
+            orderList.textContent = orderItems.join(', ');
+            totalDisplay.textContent = orderTotal;
+        }
+    </script>
+</body>
+</html>
+```
